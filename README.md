@@ -38,7 +38,11 @@ Este é um sistema simples para gerenciar adiantamentos salariais. Permite adici
 
 Contribuições são bem-vindas! Se você tiver sugestões de melhorias, correções de bugs ou novas funcionalidades, sinta-se à vontade para abrir uma issue ou enviar um pull request.
 
+## Contato
+
+Autor: Antoniel Sousa
+WhatsApp: +55 84 999507938
+
 ## Licença
 
 Este projeto está licenciado sob a [MIT License](LICENSE).
-
