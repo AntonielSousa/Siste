@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="author" content="Seu Nome">
+  <title>Sistema de Adiantamento Salarial</title>
+  <!-- Adicionar link para o CSS do Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Estilos adicionais */
+    body {
+      padding: 20px;
+      background-color: #222;
+      color: #fff;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    header img {
+      width: 100px;
+      height: 100px;
+      margin-right: 10px;
+    }
+
+    form,
+    table {
+      background-color: #333;
+      color: #fff;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"],
+    textarea,
+    input[type="date"] {
+      background-color: #444;
+      border-color: #444;
+      color: #fff;
+    }
+
+    input[type="submit"] {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    table th {
+      background-color: #222;
+      color: #fff;
+    }
+
+    table td {
+      border-color: #444;
+    }
+
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+      height: 3rem;
+      padding: 0 2rem;
+      border-radius: 1.5rem;
+      background: #3d3a4e;
+      background-size: 400%;
+      color: #fff;
+      border: none;
+    }
+
+    .btn-primary:hover::before {
+      transform: scaleX(1);
+    }
+
+    .btn-primary-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      width: 100%;
+      height: inherit;
+      border-radius: inherit;
+      background: linear-gradient(
+        82.3deg,
+        rgba(150, 93, 233, 1) 10.8%,
+        rgba(99, 88, 238, 1) 94.3%
+      );
+      transition: all 0.475s;
+    }
+
+    .btn-danger {
+      position: relative;
+      overflow: hidden;
+      height: 3rem;
+      padding: 0 2rem;
+      border-radius: 1.5rem;
+      background: #dc3545;
+      background-size: 400%;
+      color: #fff;
+      border: none;
+    }
+
+    .btn-danger:hover::before {
+      transform: scaleX(1);
+    }
+
+    .btn-danger-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-danger::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      width: 100%;
+      height: inherit;
+      border-radius: inherit;
+      background: linear-gradient(
+        82.3deg,
+        rgba(240, 84, 84, 1) 10.8%,
+        rgba(222, 53, 69, 1) 94.3%
+      );
+      transition: all 0.475s;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #333;
+    }
+
+    footer p {
+      margin: 0;
+      color: #fff;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script>
+    // Função para adicionar interatividade ao sistema
+    document.addEventListener('DOMContentLoaded', function() {
+      const advanceForm = document.getElementById('advanceForm');
+      const advanceTable = document.getElementById('advanceTable').getElementsByTagName('tbody')[0];
+
+      // Recuperar os adiantamentos salariais armazenados no localStorage
+      const savedAdvances = JSON.parse(localStorage.getItem('advances')) || [];
+
+      // Preencher a tabela com os adiantamentos salvos
+      savedAdvances.forEach(function(advance) {
+        const newRow = advanceTable.insertRow();
+        newRow.innerHTML = `
+          <td>${advance.employeeName}</td>
+          <td>${advance.amount}</td>
+          <td>${advance.description}</td>
+          <td>${advance.date}</td>
+          <td>
+            <button class="btn btn-primary edit-btn">Editar</button>
+            <button class="btn btn-danger delete-btn">Excluir</button>
+            <button class="btn btn-primary receipt-btn">Recibo</button>
+          </td>
+        `;
+      });
+
+      advanceForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Obter os valores dos campos do formulário
+        const employeeName = document.getElementById('employeeName').value;
+        const amount = parseFloat(document.getElementById('amount').value.replace(',', '.'));
+        const description = document.getElementById('description').value;
+        const date = document.getElementById('date').value;
+
+        // Formatar o valor do adiantamento salarial em formato de moeda
+        const formattedAmount = amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Criar uma nova linha na tabela com os dados do adiantamento salarial
+        const newRow = advanceTable.insertRow();
+        newRow.innerHTML = `
+          <td>${employeeName}</td>
+          <td>${formattedAmount}</td>
+          <td>${description}</td>
+          <td>${date}</td>
+          <td>
+            <button class="btn btn-primary edit-btn">Editar</button>
+            <button class="btn btn-danger delete-btn">Excluir</button>
+            <button class="btn btn-primary receipt-btn">Recibo</button>
+          </td>
+        `;
+
+        // Salvar o adiantamento salarial no localStorage
+        const advance = {
+          employeeName: employeeName,
+          amount: formattedAmount,
+          description: description,
+          date: date
+        };
+        savedAdvances.push(advance);
+        localStorage.setItem('advances', JSON.stringify(savedAdvances));
+
+        // Limpar os campos do formulário após adicionar o adiantamento salarial
+        advanceForm.reset();
+      });
+
+      advanceTable.addEventListener('click', function(event) {
+        const target = event.target;
+
+        // Verificar se o botão de edição foi clicado
+        if (target.classList.contains('edit-btn')) {
+          const row = target.parentNode.parentNode;
+          const employeeName = row.cells[0].textContent;
+          const amount = row.cells[1].textContent.replace(/[^0-9.-]+/g,"").replace('.', ',');
+          const description = row.cells[2].textContent;
+          const date = row.cells[3].textContent;
+
+          // Preencher o formulário com os dados do adiantamento salarial
+          document.getElementById('employeeName').value = employeeName;
+          document.getElementById('amount').value = amount;
+          document.getElementById('description').value = description;
+          document.getElementById('date').value = date;
+
+          // Remover a linha da tabela
+          advanceTable.removeChild(row);
+        }
+
+        // Verificar se o botão de exclusão foi clicado
+        if (target.classList.contains('delete-btn')) {
+          const row = target.parentNode.parentNode;
+
+          // Remover a linha da tabela
+          advanceTable.removeChild(row);
+        }
+
+        // Verificar se o botão de recibo foi clicado
+        if (target.classList.contains('receipt-btn')) {
+          const row = target.parentNode.parentNode;
+          const employeeName = row.cells[0].textContent;
+          const amount = row.cells[1].textContent;
+          const description = row.cells[2].textContent;
+          const date = row.cells[3].textContent;
+
+          emitReceipt(employeeName, amount, description, date);
+        }
+      });
+
+      function emitReceipt(employeeName, amount, description, date) {
+        const doc = new jsPDF();
+
+        doc.setFontSize(12);
+        doc.text('Recibo de Adiantamento Salarial', 10, 10);
+        doc.text('-------------------------------', 10, 20);
+        doc.text(`Funcionário: ${employeeName}`, 10, 30);
+        doc.text(`Valor: ${amount}`, 10, 40);
+        doc.text(`Descrição: ${description}`, 10, 50);
+        doc.text(`Data: ${date}`, 10, 60);
+        doc.text('-------------------------------', 10, 70);
+
+        doc.save('recibo.pdf');
+      }
+
+      function fazerBackup() {
+        const backupAdvances = JSON.stringify(savedAdvances);
+        localStorage.setItem('backupAdvances', backupAdvances);
+      }
+
+      function restaurarBackup() {
+        const backupAdvances = localStorage.getItem('backupAdvances');
+
+        if (backupAdvances) {
+          const parsedAdvances = JSON.parse(backupAdvances);
+
+          // Limpar a tabela de adiantamentos salariais
+          advanceTable.innerHTML = '';
+
+          // Preencher a tabela com os adiantamentos do backup
+          parsedAdvances.forEach(function(advance) {
+            const newRow = advanceTable.insertRow();
+            newRow.innerHTML = `
+              <td>${advance.employeeName}</td>
+              <td>${advance.amount}</td>
+              <td>${advance.description}</td>
+              <td>${advance.date}</td>
+              <td>
+                <button class="btn btn-primary edit-btn">Editar</button>
+                <button class="btn btn-danger delete-btn">Excluir</button>
+                <button class="btn btn-primary receipt-btn">Recibo</button>
+              </td>
+            `;
+          });
+
+          // Atualizar os adiantamentos salvos no localStorage
+          savedAdvances.length = 0;
+          parsedAdvances.forEach(function(advance) {
+            savedAdvances.push(advance);
+          });
+          localStorage.setItem('advances', JSON.stringify(savedAdvances));
+        }
+      }
+
+      // Chamar a função de restaurarBackup ao carregar a página
+      restaurarBackup();
+    });
+  </script>
+</head>
+<body>
+    <header>
+        <img src="img/logo.png" alt="Logo da Empresa">
+        <h1>Sistema de Adiantamento Salarial</h1>
+    </header>
+
+    <!-- Formulário para adicionar um novo adiantamento salarial -->
+    <form id="advanceForm">
+        <div class="mb-3">
+            <label for="employeeName" class="form-label">Nome do Funcionário:</label>
+            <input type="text" id="employeeName" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="amount" class="form-label">Valor do Adiantamento:</label>
+            <input type="text" id="amount" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Descrição:</label>
+            <textarea id="description" class="form-control"></textarea>
+        </div>
+        
+        <div class="mb-3">
+            <label for="date" class="form-label">Data:</label>
+            <input type="date" id="date" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-add-advance">
+          <span class="btn-primary-content">Adicionar Adiantamento</span>
+        </button>
+    </form>
+
+    <!-- Tabela para listar os adiantamentos salariais existentes -->
+    <table id="advanceTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Funcionário</th>
+                <th>Valor</th>
+                <th>Descrição</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Os dados dos adiantamentos salariais serão adicionados dinamicamente aqui -->
+        </tbody>
+    </table>
+
+    <!-- Botão para fazer backup -->
+    <button class="btn btn-primary" onclick="fazerBackup()">Fazer Backup</button>
+
+    <!-- Botão para restaurar backup -->
+    <button class="btn btn-primary" onclick="restaurarBackup()">Restaurar Backup</button>
+
+    <!-- Rodapé -->
+    <footer>
+      <p>&copy; 2023 - TODOS OS DIREITOS RESERVADOS - </p>
+    </footer>
+
+    <!-- Adicionar link para o JavaScript do Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
